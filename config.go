@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+const configFile = "config.json"
+
 type Config struct {
 	GameDir       string `json:"game_dir"`
 	RepositoryURL string `json:"repository_url"`
@@ -13,7 +15,7 @@ type Config struct {
 
 func loadConfig() (Config, error) {
 	var cfg Config
-	data, err := os.ReadFile("config.json")
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return cfg, err
 	}
