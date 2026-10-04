@@ -64,3 +64,4 @@ mentioned above, like this:
 		"script": "/path/to/Valheim/start_game_bepinex.sh"
 	}
 ```
+Once a file like this exists you can launch `vhmm` with no flags and it will automatically read from the `config.json` file and assume its settings.
