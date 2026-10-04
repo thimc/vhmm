@@ -5,14 +5,14 @@ import (
 	"strings"
 )
 
-func versionPart(parts []string, index int) int {
+func versionPart(parts []string, i int) int {
 	var result int
-	if index >= len(parts) {
+	if i >= len(parts) {
 		return 0
 	}
-	value := parts[index]
-	if dash := strings.IndexByte(value, '-'); dash >= 0 {
-		value = value[:dash]
+	value := parts[i]
+	if d := strings.IndexByte(value, '-'); d >= 0 {
+		value = value[:d]
 	}
 	if _, err := fmt.Sscanf(value, "%d", &result); err != nil {
 		return 0

@@ -23,7 +23,7 @@ type Manager struct {
 	c          *http.Client
 }
 
-func NewManager(repo Repository, cfg Config, dryRun bool) *Manager {
+func NewManager(r Repository, cfg Config, dryRun bool) *Manager {
 	m := &Manager{
 		GameDir:    filepath.Join(cfg.GameDir, "BepInEx", "plugins"),
 		Repository: make(map[string]Plugin),
@@ -33,7 +33,7 @@ func NewManager(repo Repository, cfg Config, dryRun bool) *Manager {
 		DryRun:     dryRun,
 		c:          &http.Client{Timeout: 10 * time.Second},
 	}
-	for _, p := range repo.Plugins {
+	for _, p := range r.Plugins {
 		mk := pluginKey(p.Owner, p.Name)
 		m.Repository[mk] = p
 	}
@@ -259,11 +259,11 @@ func (m *Manager) Install(p Plugin, pv PluginVersion) error {
 	return nil
 }
 
-func (m *Manager) UpdatePlugin(installed InstalledPlugin, p Plugin, version PluginVersion) error {
-	td := installed.Directory
+func (m *Manager) UpdatePlugin(i InstalledPlugin, p Plugin, v PluginVersion) error {
+	td := i.Directory
 	fmt.Printf("Removing old installation of %s: %s\n", p.FullName, td)
 	if err := os.RemoveAll(td); err != nil {
 		return err
 	}
-	return m.Install(p, version)
+	return m.Install(p, v)
 }
