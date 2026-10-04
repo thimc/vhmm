@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+const (
+	manifestFile      = "manifest.json"
+	bepInExDependency = "bepinexpack_valheim"
+)
+
 type Manager struct {
 	GameDir    string
 	Repository map[string]Plugin
@@ -69,35 +74,44 @@ func dependencyKey(dependency string) string {
 	// return strings.ToLower(strings.Join(parts[:len(p)-1], "-"))
 }
 
+func (m *Manager) findInstalled(path string) (string, InstalledPlugin, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", InstalledPlugin{}, err
+	}
+	var im InstalledManifest
+	if err := json.Unmarshal(b, &im); err != nil {
+		fmt.Printf("Invalid manifest %s: %v\n", path, err)
+		return "", InstalledPlugin{}, nil
+	}
+	if im.Name == "" || im.VersionNumber == "" {
+		fmt.Printf("Invalid manifest: \n", path)
+		return "", InstalledPlugin{}, nil
+	}
+	k := installedManifestKey(im.Name)
+	return k, InstalledPlugin{
+		ManifestPath: path,
+		Directory:    filepath.Dir(path),
+		Manifest:     im,
+	}, nil
+}
+
 func (m *Manager) Scan() error {
-	return filepath.Walk(m.GameDir, func(path string, fi os.FileInfo, err error) error {
+	walk := func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if fi.IsDir() || fi.Name() != "manifest.json" {
+		if fi.IsDir() || fi.Name() != manifestFile {
 			return nil
 		}
-		b, err := os.ReadFile(path)
+		key, ip, err := m.findInstalled(path)
 		if err != nil {
 			return err
 		}
-		var im InstalledManifest
-		if err := json.Unmarshal(b, &im); err != nil {
-			fmt.Printf("Invalid manifest %s: %v\n", path, err)
-			return nil
-		}
-		if im.Name == "" || im.VersionNumber == "" {
-			fmt.Printf("Invalid manifest: \n", path)
-			return nil
-		}
-		k := installedManifestKey(im.Name)
-		m.Installed[k] = InstalledPlugin{
-			ManifestPath: path,
-			Directory:    filepath.Dir(path),
-			Manifest:     im,
-		}
+		m.Installed[key] = ip
 		return nil
-	})
+	}
+	return filepath.Walk(m.GameDir, walk)
 }
 
 func (m *Manager) Update() error {
@@ -107,7 +121,7 @@ func (m *Manager) Update() error {
 	}
 	sort.Strings(plugins)
 	for _, p := range plugins {
-		if err := m.Ensure(p); err != nil {
+		if err := m.ensure(p); err != nil {
 			fmt.Printf("Failed to ensure p %s: %v\n", p, err)
 			return err
 		}
@@ -115,7 +129,11 @@ func (m *Manager) Update() error {
 	return nil
 }
 
-func (m *Manager) Ensure(p string) error {
+func (m *Manager) manifestFilePath(fullName, version string) string {
+	return filepath.Join(m.GameDir, fmt.Sprintf("%s-%s", fullName, version), manifestFile)
+}
+
+func (m *Manager) ensure(p string) error {
 	if m.Processed[p] {
 		fmt.Printf("Already processed: %s\n", p)
 		return nil
@@ -124,7 +142,7 @@ func (m *Manager) Ensure(p string) error {
 		fmt.Printf("Already being processed: %s\n", p)
 		return nil
 	}
-	if p == "bepinexpack_valheim" {
+	if p == bepInExDependency {
 		fmt.Printf("Skipping %s\n", p)
 		return nil
 	}
@@ -143,17 +161,19 @@ func (m *Manager) Ensure(p string) error {
 		if _, exists := m.Repository[dk]; !exists {
 			return fmt.Errorf("dependency %q of %s does not exist in the repository", dep, rp.FullName)
 		}
-		if err := m.Ensure(dk); err != nil {
+		if err := m.ensure(dk); err != nil {
 			return err
 		}
 	}
+	reload := false
 	ik, exists := m.Installed[p]
 	if !exists {
 		fmt.Printf("Installing %s %s\n", rp.Name, lv.VersionNumber)
 		if !m.DryRun {
-			if err := m.Install(rp, lv); err != nil {
+			if err := m.InstallPlugin(rp, lv); err != nil {
 				return err
 			}
+			reload = true
 		}
 	} else {
 		switch compareVersions(ik.Manifest.VersionNumber, lv.VersionNumber) {
@@ -163,18 +183,22 @@ func (m *Manager) Ensure(p string) error {
 				if err := m.UpdatePlugin(ik, rp, lv); err != nil {
 					return err
 				}
+				reload = true
 			}
 		default:
 			fmt.Printf("%s is up-to-date (%s)\n", rp.Name, lv.VersionNumber)
 		}
 	}
-	if !m.DryRun {
-		// TODO: This consumes unnecessary CPU cycles,
-		// Instead of scanning ALL directories we should
-		// really just update the current m.Installed[..]
-		if err := m.Scan(); err != nil {
+	if reload {
+		mfp := m.manifestFilePath(rp.FullName, lv.VersionNumber)
+		if mfp == "" {
+			return fmt.Errorf("Failed to locate the new %s file for %s\n", manifestFile, rp.FullName)
+		}
+		k, ip, err := m.findInstalled(mfp)
+		if err != nil {
 			return err
 		}
+		m.Installed[k] = ip
 	}
 	m.Processed[p] = true
 	return nil
@@ -238,7 +262,7 @@ func (m *Manager) extract(path, dest string) error {
 	return nil
 }
 
-func (m *Manager) Install(p Plugin, pv PluginVersion) error {
+func (m *Manager) InstallPlugin(p Plugin, pv PluginVersion) error {
 	if pv.DownloadURL == "" {
 		return fmt.Errorf("%s is missing a download URL", p.FullName)
 	}
@@ -269,5 +293,5 @@ func (m *Manager) UpdatePlugin(i InstalledPlugin, p Plugin, v PluginVersion) err
 	if err := os.RemoveAll(td); err != nil {
 		return err
 	}
-	return m.Install(p, v)
+	return m.InstallPlugin(p, v)
 }

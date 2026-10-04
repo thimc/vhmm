@@ -33,10 +33,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err := m.Scan(); err != nil {
-		fmt.Printf("Failed to scan installed ps: %v\n", err)
+		fmt.Printf("Failed to scan installed plugin: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Found %d installed plugins\n", len(m.Installed))
+	fmt.Printf("Found %d installed plugin(s)\n", len(m.Installed))
 	for p, ip := range m.Installed {
 		fmt.Printf("%s %s: %s\n", p, ip.Manifest.VersionNumber, ip.Directory)
 	}
