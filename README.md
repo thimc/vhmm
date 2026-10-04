@@ -52,7 +52,7 @@ Usage of vhmm:
 1. Extract all of the contents from the zip file to its own directory (for example `shudnal-ExtraSlots-1.2.16`)
 1. Move the entire plugin directory to `</path/to/Valheim>/BepInEx/plugins`
 1. Copy the `vhmm` executable in to `</path/to/Valheim>`
-1. Run `vhmm -game </path/to/Valheim> -script </path/to/Valheim>/start_game_bepinex.sh` to tell vhmm where Valheim is installed and optionally run BepInEx after all mods are confirmed to be up-to-date.
+1. Run `vhmm -game </path/to/Valheim> -script </path/to/Valheim>/start_game_bepinex.sh` to tell vhmm where Valheim is installed and optionally launch Valheim with BepInEx enabled after all mods are confirmed to be up-to-date.
 
 Having to provide flags everytime you launch vhmm is awkward and
 annoying so you can create a `config.json` file in the same directory as

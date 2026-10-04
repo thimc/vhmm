@@ -38,10 +38,8 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("Found %d installed plugins\n", len(m.Installed))
-	for k, v := range m.Installed {
-		fmt.Printf("Found %s\n", k)
-		fmt.Printf("- Version:    %s\n", v.Manifest.VersionNumber)
-		fmt.Printf("- Directory:  %s\n", v.Directory)
+	for p, ip := range m.Installed {
+		fmt.Printf("%s %s: %s\n", p, ip.Manifest.VersionNumber, ip.Directory)
 	}
 	if err := m.Update(); err != nil {
 		fmt.Printf("Failed to update: %v\n", err)
