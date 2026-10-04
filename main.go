@@ -7,15 +7,15 @@ import (
 	"os/exec"
 )
 
-func main() {
-	var (
-		gameDir       = flag.String("game", "", "Path to the root game directory")
-		repositoryURL = flag.String("repository", "https://thunderstore.io/c/valheim/api/v1/package/", "URL of the repository")
-		dryRun        = flag.Bool("dry-run", false, "Only display changes")
-		script        = flag.String("script", "", "Optional; if supplied and vhmm finishes without any issues, run script after")
-	)
-	flag.Parse()
+var (
+	gameDir       = flag.String("game", "", "Path to the root game directory")
+	repositoryURL = flag.String("repository", "https://thunderstore.io/c/valheim/api/v1/package/", "URL of the repository")
+	dryRun        = flag.Bool("dry-run", false, "Only display changes")
+	script        = flag.String("script", "", "Optional; if supplied and vhmm finishes without any issues, run script after")
+)
 
+func main() {
+	flag.Parse()
 	cfg, err := loadConfig()
 	if err != nil {
 		if *gameDir == "" || *repositoryURL == "" {
@@ -27,12 +27,11 @@ func main() {
 	if *repositoryURL != "" {
 		cfg.RepositoryURL = *repositoryURL
 	}
-	repo, err := NewRepository(cfg.RepositoryURL)
+	m, err := NewManager(cfg, *dryRun)
 	if err != nil {
-		fmt.Printf("Failed to initialize repository: %v\n", err)
+		fmt.Printf("Failed to initialize manager: %v\n", err)
 		os.Exit(1)
 	}
-	var m = NewManager(repo, cfg, *dryRun)
 	if err := m.Scan(); err != nil {
 		fmt.Printf("Failed to scan installed ps: %v\n", err)
 		os.Exit(1)

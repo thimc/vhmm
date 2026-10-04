@@ -23,7 +23,7 @@ type Repository struct {
 	Plugins []Plugin
 }
 
-func (r *Repository) UpdateNeeded() bool {
+func (r *Repository) updateNeeded() bool {
 	fi, err := os.Stat(repoFile)
 	if err != nil {
 		return true
@@ -31,7 +31,7 @@ func (r *Repository) UpdateNeeded() bool {
 	return time.Since(fi.ModTime()) > repoDelta
 }
 
-func (r *Repository) Update() error {
+func (r *Repository) update() error {
 	resp, err := http.Get(r.URL)
 	if err != nil {
 		return err
@@ -55,9 +55,9 @@ func (r *Repository) Update() error {
 
 func NewRepository(url string) (Repository, error) {
 	repo := Repository{URL: url}
-	if repo.UpdateNeeded() {
+	if repo.updateNeeded() {
 		fmt.Printf("Downloading new repository from %s to %s\n", url, repoFile)
-		if err := repo.Update(); err != nil {
+		if err := repo.update(); err != nil {
 			return repo, err
 		}
 	}

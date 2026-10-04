@@ -23,7 +23,7 @@ type Manager struct {
 	c          *http.Client
 }
 
-func NewManager(r Repository, cfg Config, dryRun bool) *Manager {
+func NewManager(cfg Config, dryRun bool) (*Manager, error) {
 	m := &Manager{
 		GameDir:    filepath.Join(cfg.GameDir, "BepInEx", "plugins"),
 		Repository: make(map[string]Plugin),
@@ -33,11 +33,15 @@ func NewManager(r Repository, cfg Config, dryRun bool) *Manager {
 		DryRun:     dryRun,
 		c:          &http.Client{Timeout: 10 * time.Second},
 	}
-	for _, p := range r.Plugins {
+	repo, err := NewRepository(cfg.RepositoryURL)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to initialize repository: %v\n", err)
+	}
+	for _, p := range repo.Plugins {
 		mk := pluginKey(p.Owner, p.Name)
 		m.Repository[mk] = p
 	}
-	return m
+	return m, nil
 }
 
 type InstalledPlugin struct {
