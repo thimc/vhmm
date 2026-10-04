@@ -1,7 +1,7 @@
 # vhmm
 
-[!CAUTION]
-vhmm is made for me and me only, don't expect it to work out of the box.
+> [!CAUTION]
+> vhmm is made for me and me only, don't expect it to work out of the box.
 
 Tiny Valheim mod manager for Linux.
 
