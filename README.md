@@ -26,33 +26,41 @@ They are assumed to extracted to their own directory, so your `plugins` director
 
 ## Usage
 
-Running `vhmm` with the `-h` flag yields:
+> [!WARNING]
+> vhmm does not manage BepInEx, so you are expected to have installed this yourself.
 
-	Usage of vhmm:
-	  -dry-run
-		Only display changes
-	  -game string
-		Path to the root game directory
-	  -repository string
-		URL of the repository (default "https://thunderstore.io/c/valheim/api/v1/package/")
-	  -script string
-		Optional; if supplied and vhmm finishes without any issues, run script after.
+Run `vhmm` with the `-h` flag which yields the following:
+```
+Usage of vhmm:
+  -dry-run
+    	Only display changes
+  -game string
+    	Path to the root game directory
+  -repository string
+    	URL of the repository (default "https://thunderstore.io/c/valheim/api/v1/package/")
+  -script string
+    	Optional; if supplied and vhmm finishes without any issues, run script after
+```
 
-The only flag that is required for vhmm to work is the `-game` flag,
-which should point to your *root* directory of Valheim, that is the
-directory where there should be another directory called `BepInEx`
-and in that `plugins`.
+> [!NOTE]
+> The only flag that is required for vhmm to work is the `-game` flag which should point to your *root* directory of Valheim.
 
-Another useful flag is the `-script` flag which launches any program
-you give it when vhmm finishes synchronizing and updating your plugins.
-My personal use case for this is to launch Valheim with BepInEx enabled.
+
+### Example
+
+1. Download any plugin of your choice from thunderstore.io (for example `ExtraSlots`)
+1. Extract all of the contents from the zip file to its own directory (for example `shudnal-ExtraSlots-1.2.16`)
+1. Move the entire plugin directory to `</path/to/Valheim>/BepInEx/plugins`
+1. Copy the `vhmm` executable in to `</path/to/Valheim>`
+1. Run `vhmm -game </path/to/Valheim> -script </path/to/Valheim>/start_game_bepinex.sh` to tell vhmm where Valheim is installed and optionally run BepInEx after all mods are confirmed to be up-to-date.
 
 Having to provide flags everytime you launch vhmm is awkward and
 annoying so you can create a `config.json` file in the same directory as
-hmm is launched where you can provide default values for both of the flags
+vhmm is launched where you can provide default values for both of the flags
 mentioned above, like this:
-
+```
 	{
 		"game_dir": "/path/to/Valheim",
 		"script": "/path/to/Valheim/start_game_bepinex.sh"
 	}
+```
