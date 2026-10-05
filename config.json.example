@@ -1,4 +1,3 @@
 {
-	"game_dir": "/path/to/Valheim",
-	"script": "/path/to/Valheim/start_game_bepinex.sh"
+	"game_dir": "/path/to/Valheim"
 }

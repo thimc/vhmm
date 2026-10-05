@@ -58,7 +58,7 @@ vhmm is launched where you can provide default values for both of the flags
 mentioned above, like this:
 ```
 	{
-		"game_dir": "/path/to/Valheim",
+		"game_dir": "/path/to/Valheim"
 	}
 ```
 Once a file like this exists you can launch `vhmm` with no flags and it will automatically read from the `config.json` file and assume its settings.
