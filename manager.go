@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -79,6 +80,7 @@ func (m *Manager) findInstalled(path string) (string, InstalledPlugin, error) {
 	if err != nil {
 		return "", InstalledPlugin{}, err
 	}
+	b = bytes.TrimPrefix(b, []byte{0xEF, 0xBB, 0xBF})
 	var im InstalledManifest
 	if err := json.Unmarshal(b, &im); err != nil {
 		fmt.Printf("Invalid manifest %s: %v\n", path, err)
