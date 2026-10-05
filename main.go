@@ -4,14 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 )
 
 var (
 	gameDir       = flag.String("game", "", "Path to the root game directory")
 	repositoryURL = flag.String("repository", "https://thunderstore.io/c/valheim/api/v1/package/", "URL of the repository")
 	dryRun        = flag.Bool("dry-run", false, "Only display changes")
-	script        = flag.String("script", "", "Optional; if supplied and vhmm finishes without any issues, run script after")
 )
 
 func main() {
@@ -22,7 +20,7 @@ func main() {
 			flag.Usage()
 			os.Exit(1)
 		}
-		cfg = Config{GameDir: *gameDir, Script: *script}
+		cfg = Config{GameDir: *gameDir}
 	}
 	if *repositoryURL != "" {
 		cfg.RepositoryURL = *repositoryURL
@@ -43,16 +41,5 @@ func main() {
 	if err := m.Update(); err != nil {
 		fmt.Printf("Failed to update: %v\n", err)
 		os.Exit(1)
-	}
-	if !*dryRun && cfg.Script != "" {
-		fmt.Printf("Launching %s\n", cfg.Script)
-		cmd := exec.Command("/bin/bash", cfg.Script)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "script failed: %v\n", err)
-			os.Exit(1)
-		}
 	}
 }

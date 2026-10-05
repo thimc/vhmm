@@ -10,7 +10,6 @@ const configFile = "config.json"
 type Config struct {
 	GameDir       string `json:"game_dir"`
 	RepositoryURL string `json:"repository_url"`
-	Script        string `json:"script"`
 }
 
 func loadConfig() (Config, error) {

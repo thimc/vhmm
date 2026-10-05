@@ -38,8 +38,6 @@ Usage of vhmm:
     	Path to the root game directory
   -repository string
     	URL of the repository (default "https://thunderstore.io/c/valheim/api/v1/package/")
-  -script string
-    	Optional; if supplied and vhmm finishes without any issues, run script after
 ```
 
 > [!NOTE]
@@ -52,7 +50,7 @@ Usage of vhmm:
 1. Extract all of the contents from the zip file to its own directory (for example `shudnal-ExtraSlots-1.2.16`)
 1. Move the entire plugin directory to `</path/to/Valheim>/BepInEx/plugins`
 1. Copy the `vhmm` executable in to `</path/to/Valheim>`
-1. Run `vhmm -game </path/to/Valheim> -script </path/to/Valheim>/start_game_bepinex.sh` to tell vhmm where Valheim is installed and optionally launch Valheim with BepInEx enabled after all mods are confirmed to be up-to-date.
+1. Run `vhmm -game </path/to/Valheim>` to manage any istalled mods and its dependencies.
 
 Having to provide flags everytime you launch vhmm is awkward and
 annoying so you can create a `config.json` file in the same directory as
@@ -61,7 +59,6 @@ mentioned above, like this:
 ```
 	{
 		"game_dir": "/path/to/Valheim",
-		"script": "/path/to/Valheim/start_game_bepinex.sh"
 	}
 ```
 Once a file like this exists you can launch `vhmm` with no flags and it will automatically read from the `config.json` file and assume its settings.
