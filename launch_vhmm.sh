@@ -1,3 +1,4 @@
 #!/bin/sh
 shift
-./vhmm && exec "$@"
+vhmm
+exec "$@"
