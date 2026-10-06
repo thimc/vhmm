@@ -9,7 +9,8 @@ Tiny Valheim mod manager for Linux.
 vhmm does the following:
 * keeps track of a local index of thunderstore from which to download plugins from.
 * maintains all your plugins that are locally installed in your `<GAME>/BepInEx/plugins` directory.
-They are assumed to extracted to their own directory, so your `plugins` directory should look something like this:
+They are assumed to extracted to their own directory, so your `plugins`
+directory should look something like this:
 ```
 ../Valheim/BepIndex/plugins/
 ../Valheim/BepIndex/plugins/denikson-BepInExPack_Valheim-5.4.2350
@@ -52,13 +53,24 @@ Usage of vhmm:
 1. Copy the `vhmm` executable in to `</path/to/Valheim>`
 1. Run `vhmm -game </path/to/Valheim>` to manage any istalled mods and its dependencies.
 
-Having to provide flags everytime you launch vhmm is awkward and
-annoying so you can create a `config.json` file in the same directory as
-vhmm is launched where you can provide default values for both of the flags
+Having to provide flags everytime you launch vhmm is awkward and annoying
+so you can create a `config.json` file in the same directory as vhmm
+is launched where you can provide default values for both of the flags
 mentioned above, like this:
 ```
 	{
 		"game_dir": "/path/to/Valheim"
 	}
 ```
-Once a file like this exists you can launch `vhmm` with no flags and it will automatically read from the `config.json` file and assume its settings.
+Once a file like this exists you can launch `vhmm` with no flags and
+it will automatically read from the `config.json` file and assume its
+settings.
+
+## Steam Users
+
+If you are running Valheim via Steam you can bootstrap vhmm to launch
+the game with BepInEx enabled when its done updating all the plugins.
+
+1. Right click on Valheim
+2. Click "Properties..."
+3. Add `./launch_vhmm.sh start_game_bepinex.sh %command%` to "Launch Options"
