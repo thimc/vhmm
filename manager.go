@@ -19,6 +19,11 @@ const (
 	bepInExDependency = "bepinexpack_valheim"
 )
 
+var (
+	bepInExDirectory = []string{"BepInEx", "plugins"}
+	utf8BOM          = []byte{0xEF, 0xBB, 0xBF}
+)
+
 type Manager struct {
 	GameDir    string
 	Repository map[string]Plugin
@@ -31,7 +36,7 @@ type Manager struct {
 
 func NewManager(cfg Config, dryRun bool) (*Manager, error) {
 	m := &Manager{
-		GameDir:    filepath.Join(cfg.GameDir, "BepInEx", "plugins"),
+		GameDir:    filepath.Join(append([]string{cfg.GameDir}, bepInExDirectory...)...),
 		Repository: make(map[string]Plugin),
 		Installed:  make(map[string]InstalledPlugin),
 		Processing: make(map[string]bool),
@@ -39,11 +44,11 @@ func NewManager(cfg Config, dryRun bool) (*Manager, error) {
 		DryRun:     dryRun,
 		c:          &http.Client{Timeout: 10 * time.Second},
 	}
-	repo, err := NewRepository(cfg.RepositoryURL)
+	r, err := NewRepository(cfg.RepositoryURL)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize repository: %v\n", err)
 	}
-	for _, p := range repo.Plugins {
+	for _, p := range r.Plugins {
 		mk := pluginKey(p.Owner, p.Name)
 		m.Repository[mk] = p
 	}
@@ -80,7 +85,7 @@ func (m *Manager) findInstalled(path string) (string, InstalledPlugin, error) {
 	if err != nil {
 		return "", InstalledPlugin{}, err
 	}
-	b = bytes.TrimPrefix(b, []byte{0xEF, 0xBB, 0xBF})
+	b = bytes.TrimPrefix(b, utf8BOM)
 	var im InstalledManifest
 	if err := json.Unmarshal(b, &im); err != nil {
 		fmt.Printf("Invalid manifest %s: %v\n", path, err)
@@ -99,7 +104,7 @@ func (m *Manager) findInstalled(path string) (string, InstalledPlugin, error) {
 }
 
 func (m *Manager) Scan() error {
-	walk := func(path string, fi os.FileInfo, err error) error {
+	return filepath.Walk(m.GameDir, func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -112,8 +117,7 @@ func (m *Manager) Scan() error {
 		}
 		m.Installed[key] = ip
 		return nil
-	}
-	return filepath.Walk(m.GameDir, walk)
+	})
 }
 
 func (m *Manager) Update() error {
@@ -124,7 +128,7 @@ func (m *Manager) Update() error {
 	sort.Strings(plugins)
 	for _, p := range plugins {
 		if err := m.ensure(p); err != nil {
-			fmt.Printf("Failed to ensure p %s: %v\n", p, err)
+			fmt.Printf("Failed to ensure plugin %s: %v\n", p, err)
 			return err
 		}
 	}
@@ -233,14 +237,15 @@ func (m *Manager) extract(path, dest string) error {
 	for _, f := range r.File {
 		tp := filepath.Join(dest, f.Name)
 		fmt.Printf("-> %s\n", tp)
-		if f.FileInfo().IsDir() {
-			if err := os.MkdirAll(tp, 0755); err != nil {
-				return err
-			}
-			continue
+		dir, isdir := filepath.Dir(tp), f.FileInfo().IsDir()
+		if isdir {
+			dir = tp
 		}
-		if err := os.MkdirAll(filepath.Dir(tp), 0755); err != nil {
+		if err := os.MkdirAll(dir, 0755); err != nil {
 			return err
+		}
+		if isdir {
+			continue
 		}
 		in, err := f.Open()
 		if err != nil {
